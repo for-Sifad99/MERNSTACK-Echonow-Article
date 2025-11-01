@@ -1,12 +1,5 @@
-# 📰 EchoNow – Full Stack News Platform  
-EchoNow is a dynamic news aggregation platform that delivers trending articles and premium content in a clean, user-friendly interface. Built with React, Firebase, Node.js, and MongoDB, it ensures fast performance and smooth navigation across mobile, tablet, and desktop devices. Users can bookmark favorites, manage their reading experience, and enjoy real-time updates, while admins have full control through a responsive dashboard.  
-
----
-
-# 👤 Admin Test Account
-
-- **Admin Email:** sifayed99@gmail.com
-- **Admin Password:** @Admin1234
+# 🍳 Cooksy — Your Personal Recipe Book App 
+Cooksy is a user-friendly Recipe Book Web App that allows food lovers to discover, share, and manage delicious recipes from around the world. Users can explore top-rated dishes, save their favorites, and even add their own creations — all in one place. 
 
 ---
 
@@ -14,7 +7,7 @@ EchoNow is a dynamic news aggregation platform that delivers trending articles a
 
 | Part | Description | Repository | Live Demo |
 |------|-------------|-------------|-----------|
-| **Frontend (Client)** | React app for users & admin dashboards | [Client Repo](https://github.com/for-Sifad99/Echonow-client) | [Live Site](https://echonow.netlify.app/) |
+| **Frontend (Client)** | React app for users | [Client Repo](https://github.com/for-Sifad99/Coocsy-client) | [Live Site](https://cooksycoo.netlify.app/) |
 | **Backend (Server)** | Node.js + Express API server | [Server Repo](https://github.com/for-Sifad99/Echonow-server) | [Server Live](https://echonow-server.vercel.app/) |
 
 ---

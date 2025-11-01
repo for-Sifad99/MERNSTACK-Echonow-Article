@@ -2,9 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
-const admin = require("firebase-admin");
+const admin = require("./config/firebase");
 const stripe = require('stripe')(process.env.PAYMENT_GETWAY_KEY);
-
+const { verifyFbToken } = require('./middleware/auth');
+const { verifyAdmin: verifyAdminMiddleware } = require('./middleware/admin');
 
 // Firebase Service Token Process
 const decoded = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8');
@@ -16,31 +17,6 @@ const port = process.env.PORT || 3000;
 // Middleware:
 app.use(cors());
 app.use(express.json());
-
-// CUSTOM MIDDLEWARE ----------------
-// Verify Admin
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
-
-// Verify Firebase Token
-const verifyFbToken = async (req, res, next) => {
-    const authHeader = req.headers?.authorization;
-    const token = authHeader.split(' ')[1];
-
-    if (!authHeader || !authHeader.startsWith('Bearer ') || !token) {
-        return res.status(401).send({ message: 'Unauthorized access!!' })
-    }
-
-    try {
-        const decoded = await admin.auth().verifyIdToken(token);
-        req.decoded = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).send({ message: 'Unauthorized access!!' });
-    };
-};
-
 
 // Home route:
 app.get('/', (req, res) => {
@@ -69,17 +45,15 @@ async function run() {
         const usersCollection = client.db('articlesDB').collection('users');
         const publishersCollection = client.db('articlesDB').collection('publishers');
 
-        // CUSTOM MIDDLEWARE ----------------
-        // Verify Admin
-        const verifyAdmin = async (req, res, next) => {
-            const email = req?.decoded?.email;
-            const user = await usersCollection.findOne({ email });
-
-            if (!user || user.role !== 'admin') {
-                return res.status(403).send({ message: 'Unauthorized access!!' })
-            }
-            next();
+        // Create database collections object to pass to routers
+        const dbCollections = {
+            articlesCollection,
+            usersCollection,
+            publishersCollection
         };
+
+        // Create verifyAdmin middleware with dbCollections
+        const verifyAdmin = verifyAdminMiddleware(dbCollections);
 
         // USERS RELATED APIS
         // POST /users
@@ -201,22 +175,6 @@ async function run() {
             const updateDoc = { $set: { role: 'admin' } };
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
-        });
-
-        // POST /get-role
-        app.post('/get-role', verifyFbToken, async (req, res) => {
-            const { email } = req.body;
-            if (!email) {
-                return res.status(400).json({ error: 'Email is required' });
-            }
-
-            const user = await usersCollection.findOne({ email });
-
-            if (user) {
-                res.json({ role: user.role || 'user' });
-            } else {
-                res.status(404).json({ error: 'User not found' });
-            }
         });
 
         // ARTICLES RELATED APIS
@@ -383,13 +341,13 @@ async function run() {
             }
         });
 
-        // GET /articles/tending
+        // GET /articles/trending
         app.get('/articles/trending', async (req, res) => {
             try {
                 const trendingArticles = await articlesCollection
                     .find({
-                        status: 'approved', type
-                            : 'tending'
+                        status: 'approved', 
+                        type: 'trending'
                     })
                     .sort({ postedDate: -1 })
                     .limit(4)
@@ -521,6 +479,22 @@ async function run() {
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("✅ Connected to MongoDB!");
+
+        // Import and use article routes
+        const articleRouter = require('./routes/articleRoutes');
+        app.use('/api', articleRouter(dbCollections));
+        
+        // Import and use user routes
+        const userRouter = require('./routes/userRoutes');
+        app.use('/api', userRouter(dbCollections));
+        
+        // Import and use publisher routes
+        const publisherRouter = require('./routes/publisherRoutes');
+        app.use('/api', publisherRouter(dbCollections));
+        
+        // Import and use email verification routes
+        const emailVerificationRouter = require('./routes/emailVerificationRoutes');
+        app.use('/api', emailVerificationRouter(dbCollections));
 
         // Start server
         app.listen(port, () => {
