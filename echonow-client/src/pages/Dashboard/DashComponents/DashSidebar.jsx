@@ -14,7 +14,7 @@ import { HiUsers } from "react-icons/hi2";
 import { MdArticle, MdLogout } from "react-icons/md";
 import { IoSunnyOutline } from "react-icons/io5";
 import { FaFeatherPointed } from "react-icons/fa6";
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 
 const DasSidebar = ({ isSidebarOpen }) => {
@@ -176,7 +176,14 @@ const DasSidebar = ({ isSidebarOpen }) => {
                             }}
                         >
                             <div className="flex items-center py-1 w-full">
-                                <img src={user?.photoURL} className='rounded-full w-8 p-0.5 border border-blue-600 dark:border-blue-400 ' alt="" />
+                                <img 
+                                    src={user?.photoURL || '/default-user.png'} 
+                                    className='rounded-full w-8 p-0.5 border border-blue-600 dark:border-blue-400 object-cover' 
+                                    alt="User profile"
+                                    onError={(e) => {
+                                        e.target.src = '/default-user.png';
+                                    }}
+                                />
 
                                 <div className="flex flex-col items-start justify-start opacity-90 ml-2 mr-auto">
                                     <p className='font-bold font-oxygen leading-2 mt-1 dark:text-[var(--white)] text-[var(--dark)]'>

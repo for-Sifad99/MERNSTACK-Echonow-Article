@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { FaUserShield } from "react-icons/fa";
 import { FiSearch, FiX } from "react-icons/fi";
-import toast from "react-hot-toast";
+import { toast } from 'sonner';
 import Swal from "sweetalert2";
 
 
@@ -147,7 +147,13 @@ const AllUsers = () => {
                                         <td>
                                             <div className="avatar">
                                                 <div className="mask mask-squircle w-7 h-7 md:w-10 md:h-10">
-                                                    <img src={user.photo} alt="user" />
+                                                    <img 
+                                                        src={user.photo || '/default-user.png'} 
+                                                        alt="User profile" 
+                                                        onError={(e) => {
+                                                            e.target.src = '/default-user.png';
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                         </td>

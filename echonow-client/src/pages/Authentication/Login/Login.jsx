@@ -6,9 +6,13 @@ import useAuth from "../../../../hooks/useAuth/useAuth";
 import SocialLogin from "../Social/SocialLogin";
 import { useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import logo from '../../../../public/logo.png';
-import toast from "react-hot-toast";
+// Using public directory asset with proper URL reference
+import logo from '/logo.png';
+import { toast } from 'sonner';
 import Swal from "sweetalert2";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const Login = () => {
     const { signInUser, forgotPassword } = useAuth();
@@ -26,12 +30,16 @@ const Login = () => {
 
         signInUser(email, password)
             .then(async (res) => {
+                // Wait a bit for the auth state to update and token to be set
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
                 // Set user profile data:
                 const userProfile = {
                     name: res.user.displayName,
                     email: email,
                     photo: res.user.photoURL,
                     isVerified: false,
+                    isEmailVerified: false, // Add email verification status
                     role: "user",
                     premiumTaken: null,
                 };
@@ -39,25 +47,34 @@ const Login = () => {
                 // Send user profile data to the server:
                 await axiosSecure.post('/users', userProfile);
 
-                // Sweet Alert
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: "top-end",
-                    showConfirmButton: false,
-                    timer: 4000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.onmouseenter = Swal.stopTimer;
-                        toast.onmouseleave = Swal.resumeTimer;
-                    }
-                });
-                Toast.fire({
-                    icon: "success",
-                    title: "Now you can continue..."
-                });
-                setTimeout(() => {
-                    navigate(from, { replace: true });
-                }, 3000);
+                // Check if user needs email verification
+                const userRes = await axiosSecure.get(`/users/${email}`);
+                if (userRes.data && !userRes.data.isEmailVerified) {
+                    // Redirect to verification page
+                    setTimeout(() => {
+                        navigate('/verify-email', { replace: true });
+                    }, 3000);
+                } else {
+                    // Sweet Alert
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.onmouseenter = Swal.stopTimer;
+                            toast.onmouseleave = Swal.resumeTimer;
+                        }
+                    });
+                    Toast.fire({
+                        icon: "success",
+                        title: "Now you can continue..."
+                    });
+                    setTimeout(() => {
+                        navigate(from, { replace: true });
+                    }, 3000);
+                }
             })
             .catch(err => {
                 toast.error(err.message === "Firebase: Error (auth/invalid-credential)." ? "Something went wrong! try again." : err.message);
@@ -109,8 +126,8 @@ const Login = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 lg:space-y-3">
                     {/* Email */}
                     <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-100">Email Address</label>
-                        <input
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-100">Email Address</Label>
+                        <Input
                             type="email"
                             {...register("email", { required: "Email is required" })}
                             placeholder="Enter your email"
@@ -121,9 +138,9 @@ const Login = () => {
 
                     {/* Password */}
                     <div>
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-100">Password</label>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-100">Password</Label>
                         <div className="relative">
-                            <input
+                            <Input
                                 type={showPassword ? "text" : "password"}
                                 {...register("password", { required: "Password is required" })}
                                 placeholder="Enter your password"
@@ -151,12 +168,12 @@ const Login = () => {
 
 
                     {/* Submit */}
-                    <button
+                    <Button
                         type="submit"
                         className="w-full bg-gradient-to-r from-red-400 to-red-600 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-400 text-[var(--white)] font-semibold py-2 transition duration-700 cursor-pointer"
                     >
                         Login
-                    </button>
+                    </Button>
 
                     {/* Footer */}
                     <span className="text-sm mb-1">

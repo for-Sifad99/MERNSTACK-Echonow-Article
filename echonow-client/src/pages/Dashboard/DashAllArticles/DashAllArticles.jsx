@@ -6,7 +6,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } 
 import { useQuery } from '@tanstack/react-query';
 import { FaCheck, FaCrown, FaTrashAlt, FaTimes } from 'react-icons/fa';
 import { FiSearch, FiX } from "react-icons/fi";
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 
 const DashAllArticles = () => {
@@ -120,7 +120,7 @@ const DashAllArticles = () => {
                 if (result.isConfirmed) {
                     const res = await axiosSecure.delete(`/articles/${id}`);
 
-                    console.log(res.data)
+                    // Removed unnecessary console.log
                     if (res.data.result.deletedCount > 0) {
                         toast.success("Articles successfully deleted!");
                     }
